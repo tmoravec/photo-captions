@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import sys
 import requests
 import logging
 from dotenv import load_dotenv
@@ -61,8 +62,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def list_files():
-    current_dir = os.getcwd()
+def list_files(folder_path="."):
+    current_dir = os.path.abspath(folder_path)
     parent_dir = os.path.basename(os.path.dirname(current_dir))
     current_dir_name = os.path.basename(current_dir)
     relative_path = (
@@ -70,8 +71,8 @@ def list_files():
     )
 
     file_list = []
-    for file in os.listdir("."):
-        if os.path.isfile(file) and file != "file_list.txt":
+    for file in os.listdir(folder_path):
+        if os.path.isfile(os.path.join(folder_path, file)) and file != "file_list.txt":
             file_list.append(file)
 
     return file_list
@@ -121,30 +122,55 @@ def upload_to_mistral(filename):
         ],
     }
 
-    response = requests.post(url, headers=headers, json=data)
-    if DEBUG:
-        logger.debug(response.text)
+    def process_response(response, filename):
+        if response.status_code == 200:
+            # Parse the response
+            result = response.json()
+            choices = result.get("choices", [])
+            if choices:
+                message = choices[0].get("message", {})
+                content = message.get("content", "")
 
-    if response.status_code == 200:
-        # Parse the response
-        result = response.json()
-        choices = result.get("choices", [])
-        if choices:
-            message = choices[0].get("message", {})
-            content = message.get("content", "")
+                if content.startswith("```json"):
+                    content = content[7:]
+                elif content.startswith("```"):
+                    content = content[3:]
+                if content.endswith("```"):
+                    content = content[:-3]
 
-            if content.startswith("```json"):
-                content = content[7:]
-            elif content.startswith("```"):
-                content = content[3:]
-            if content.endswith("```"):
-                content = content[:-3]
+                json_response = json.loads(content)
+                caption = json_response.get("caption", "")
+                tags = json_response.get("tags", [])
 
-            json_response = json.loads(content)
-            caption = json_response.get("caption", "")
-            tags = json_response.get("tags", [])
+            return {"caption": caption, "tags": tags, "success": True, "filename": filename}
+        else:
+            return {
+                "error": f"Error: {response.status_code} - {response.text}",
+                "success": False,
+                "filename": filename,
+            }
 
-        return {"caption": caption, "tags": tags, "success": True, "filename": filename}
+    max_retries = 3
+    retry_count = 0
+
+    while retry_count < max_retries:
+        try:
+            response = requests.post(url, headers=headers, json=data)
+            if DEBUG:
+                logger.debug(response.text)
+
+            return process_response(response, filename)
+        except json.decoder.JSONDecodeError as e:
+            retry_count += 1
+            if retry_count < max_retries:
+                logger.warning(f"JSONDecodeError occurred. Retrying... (Attempt {retry_count}/{max_retries})")
+                continue
+            else:
+                return {
+                    "error": f"JSONDecodeError: {str(e)}",
+                    "success": False,
+                    "filename": filename,
+                }
     else:
         return {
             "error": f"Error: {response.status_code} - {response.text}",
@@ -153,14 +179,14 @@ def upload_to_mistral(filename):
         }
 
 
-def captions_for_all_files():
+def captions_for_all_files(folder_path="."):
     logger.info("Starting caption generation for all files")
-    file_list = list_files()
+    file_list = list_files(folder_path)
     mistral_outputs = {}
 
     for file in file_list:
         logger.info(f"Processing file: {file}")
-        mistral_outputs[file] = upload_to_mistral(file)
+        mistral_outputs[file] = upload_to_mistral(os.path.join(folder_path, file))
 
     logger.info("Finished caption generation for all files")
     return mistral_outputs
@@ -176,5 +202,6 @@ def save_captions(captions_dict):
 
 
 if __name__ == "__main__":
-    captions = captions_for_all_files()
+    folder_path = sys.argv[1] if len(sys.argv) > 1 else "."
+    captions = captions_for_all_files(folder_path)
     save_captions(captions)
