@@ -18,6 +18,7 @@ Pro nahranou fotku vytvoř popisek a tagy podle těchto pravidel:
   * Zamyšlení nad opuštěností: "Kdy tu asi někdo byl naposledy?"
 - Víc podstatných jmen a sloves než přídavných jmen.
 - V první řadě popis toho, co je na fotce.
+- Délka: 3-8 slov. Maximálně jedna věta.
 
 ## HASHTAG STRATEGIE
 (mix češtiny/angličtiny, 12-18 tagů):
