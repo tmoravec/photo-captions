@@ -32,6 +32,77 @@ def list_files(folder_path="."):
 
     return file_list
 
+def process_response(response, filename, platform):
+    try:
+        if response.status_code == 200:
+            result = response.json()
+            choices = result.get("choices", [])
+            if not choices:
+                raise ValueError("No choices in response")
+
+            message = choices[0].get("message", {})
+            content = message.get("content", "")
+            if not content:
+                raise ValueError("Empty content in response")
+
+            if content.startswith("```json"):
+                content = content[7:]
+            elif content.startswith("```"):
+                content = content[3:]
+            if content.endswith("```"):
+                content = content[:-3]
+
+            json_response = json.loads(content)
+
+            if platform == "reddit":
+                # Handle list of objects for Reddit
+                if not isinstance(json_response, list):
+                    raise ValueError("Expected a list of objects for Reddit response")
+                if not all(isinstance(item, dict) for item in json_response):
+                    raise ValueError("Invalid format for Reddit response list")
+                if not all("caption" in item and "subreddit" in item for item in json_response):
+                    raise ValueError("Missing required fields in Reddit response list items")
+                # Return the entire list
+                return {
+                    "filename": filename,
+                    "subreddits": [{"subreddit": item["subreddit"], "caption": item["caption"]} for item in json_response],
+                    "platform": platform,
+                    "success": True
+                }
+            else:
+                if "caption" not in json_response or "tags" not in json_response:
+                    raise ValueError("Missing required fields in non-Reddit response")
+                return {
+                    "filename": filename,
+                    "caption": json_response["caption"],
+                    "tags": json_response["tags"],
+                    "platform": platform,
+                    "success": True
+                }
+        else:
+            raise ValueError(f"API request failed with status {response.status_code}")
+    except json.JSONDecodeError as e:
+        return {
+            "filename": filename,
+            "error": f"Invalid JSON response: {str(e)}",
+            "platform": platform,
+            "success": False
+        }
+    except ValueError as e:
+        return {
+            "filename": filename,
+            "error": f"Response validation error: {str(e)}",
+            "platform": platform,
+            "success": False
+        }
+    except Exception as e:
+        return {
+            "filename": filename,
+            "error": f"Unexpected error processing response: {str(e)}",
+            "platform": platform,
+            "success": False
+        }
+
 
 def upload_to_mistral(filename, platform):
     logger.info(f"Processing file: {filename}")
@@ -89,33 +160,6 @@ def upload_to_mistral(filename, platform):
         ],
     }
 
-    def process_response(response, filename):
-        if response.status_code == 200:
-            # Parse the response
-            result = response.json()
-            choices = result.get("choices", [])
-            if choices:
-                message = choices[0].get("message", {})
-                content = message.get("content", "")
-
-                if content.startswith("```json"):
-                    content = content[7:]
-                elif content.startswith("```"):
-                    content = content[3:]
-                if content.endswith("```"):
-                    content = content[:-3]
-
-                json_response = json.loads(content)
-                caption = json_response.get("caption", "")
-                tags = json_response.get("tags", [])
-
-            return {"caption": caption, "tags": tags, "success": True, "filename": filename}
-        else:
-            return {
-                "error": f"Error: {response.status_code} - {response.text}",
-                "success": False,
-                "filename": filename,
-            }
 
     max_retries = 3
     retry_count = 0
@@ -126,7 +170,7 @@ def upload_to_mistral(filename, platform):
             if DEBUG:
                 logger.debug(response.text)
 
-            return process_response(response, filename)
+            return process_response(response, filename, platform)  # Pass platform parameter
         except json.decoder.JSONDecodeError as e:
             retry_count += 1
             if retry_count < max_retries:
@@ -163,9 +207,16 @@ def save_captions(captions_dict):
     with open(CAPTIONS_FILE, "w") as f:
         for file, data in captions_dict.items():
             if data.get("success", False):
-                caption = data.get("caption", "")
-                tags = " ".join(data.get("tags", []))
-                f.write(f"{file}\n{caption}\n{tags}\n---\n")
+                if data.get("platform") == "reddit":
+                    subreddits = data.get("subreddits", [])
+                    for subreddit_data in subreddits:
+                        subreddit = subreddit_data.get("subreddit", "")
+                        caption = subreddit_data.get("caption", "")
+                        f.write(f"{file}\n{caption}\n{subreddit}\n---\n")
+                else:
+                    caption = data.get("caption", "")
+                    tags = " ".join(data.get("tags", []))
+                    f.write(f"{file}\n{caption}\n{tags}\n---\n")
 
 
 if __name__ == "__main__":
