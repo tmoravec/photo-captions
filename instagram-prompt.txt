@@ -28,7 +28,7 @@ Pro nahranou fotku vytvoř popisek a tagy podle těchto pravidel:
 - Niche komunita (2-3): #darkphotography #moodygrams #forgottenplaces ...
 
 # Kontext
-These pictures are from ruins of an old mill in Prague. Taken with iPhone 15 Pro Max.
+These are photos of castle ruins in southern Bohemia. It was a bit of an urbex, crawling in through broken window, etc.
 
 # Output Format (JSON)
 
