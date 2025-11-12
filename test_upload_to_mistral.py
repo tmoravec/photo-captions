@@ -3,7 +3,7 @@ import os
 from get_captions import upload_to_mistral
 
 class TestUploadToMistral(unittest.TestCase):
-    def test_upload_to_mistral(self):
+    def test_upload_to_mistral_flickr(self):
         # Test file path
         test_file_path = 'DSC_2570.jpg'
 
@@ -11,7 +11,7 @@ class TestUploadToMistral(unittest.TestCase):
         self.assertTrue(os.path.exists(test_file_path), f"Test file {test_file_path} not found")
 
         # Call the function to test
-        result = upload_to_mistral(test_file_path)
+        result = upload_to_mistral(test_file_path, "flickr")
 
         # Verify the upload was successful
         self.assertIsNotNone(result)
@@ -25,5 +25,57 @@ class TestUploadToMistral(unittest.TestCase):
         self.assertIn('tags', result)
         self.assertIsInstance(result['tags'], list)
 
+        print(f"Caption: {result['caption']}")
+        print(f"Tags: {result['tags']}")
+    
+    def test_upload_to_mistral_instagram(self):
+        # Test file path
+        test_file_path = 'DSC_2570.jpg'
+
+        # Verify the test file exists
+        self.assertTrue(os.path.exists(test_file_path), f"Test file {test_file_path} not found")
+
+        # Call the function to test
+        result = upload_to_mistral(test_file_path, "instagram")
+
+        # Verify the upload was successful
+        self.assertIsNotNone(result)
+        self.assertIsInstance(result, dict)
+        self.assertIn('success', result)
+        self.assertTrue(result['success'])
+        self.assertIn('filename', result)
+        self.assertEqual(result['filename'], test_file_path)
+        self.assertIn('caption', result)
+        self.assertIsInstance(result['caption'], str)
+        self.assertIn('tags', result)
+        self.assertIsInstance(result['tags'], list)
+
+        print(f"Caption: {result['caption']}")
+        print(f"Tags: {result['tags']}")
+
+    def test_upload_to_mistral_reddit(self):
+        # Test file path
+        test_file_path = 'DSC_2570.jpg'
+
+        # Verify the test file exists
+        self.assertTrue(os.path.exists(test_file_path), f"Test file {test_file_path} not found")
+
+        # Call the function to test
+        result = upload_to_mistral(test_file_path, "reddit")
+
+        # Verify the upload was successful
+        self.assertIsNotNone(result)
+        self.assertIsInstance(result, dict)
+        self.assertIn('success', result)
+        self.assertTrue(result['success'])
+        self.assertIn('filename', result)
+        self.assertEqual(result['filename'], test_file_path)
+        self.assertIn('caption', result)
+        self.assertIsInstance(result['caption'], str)
+        self.assertIn('tags', result)
+        self.assertIsInstance(result['tags'], list)
+
+        print(f"Caption: {result['caption']}")
+        print(f"Tags: {result['tags']}")
 if __name__ == '__main__':
     unittest.main()

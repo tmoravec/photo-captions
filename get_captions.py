@@ -11,56 +11,11 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 CAPTIONS_FILE = os.getenv("CAPTIONS_FILE", "captions.txt")
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
-PROMPT = """
-# Core Instructions
-
-You are an experienced photographer specialising in moody, atmospheric imagery that captures the darker aspects of nature and abandoned spaces. Your goal is to create authentic captions and tags for Flickr that resonate with viewers who appreciate melancholic beauty, decay, and the haunting qualities found in forgotten places.
-
-# Content Guidelines
-
-## CAPTION Requirements
-It's natural: like talking to a friend. Primarily describes what's in the picture, but can mention the gloominess of the subject. Focus on:
-
-- Common language. Avoid lyrical words like "beckons", "forgotten"
-- The sense of abandonment, decay, or melancholy in the scene
-- Atmospheric details (mist, shadows, fading light, silence)
-- Emotional resonance with themes of withering or loss
-- Connection to the quiet, forgotten aspects of places
-- Avoid clichéd phrases like "captures the essence" or "hauntingly beautiful", "dark embrace", "where ... once ...", "Empty corridors echo with ghosts"
-- Keep it under 15 words, preferably around 7.
-- Make it sound like natural speech so that it's not clearly AI generated.
-- Primarily describe what's in the image. Use the photo context below.
-- Prefer nouns and verbs to adjectives.
-
-## TAGS Strategy
-Generate 12-15 tags covering:
-
-- Specific location details (forest names, abandoned areas, nearby towns)
-- Weather/atmospheric conditions (fog, overcast, twilight)
-- Mood descriptors (melancholic, somber, desolate, forgotten)
-- Photographic techniques emphasising darkness/mood
-- Emotional atmosphere words that convey withering or decay
-- Tags are always single words
-
-# Photo Context
-
-These are photos of castle ruins in southern Bohemia. It was a bit of an urbex, crawling in through broken window, etc.
-
-# Output Format (JSON)
-
-{
-    "caption": <caption>,
-    "tags", [tag1, tag2, tag3]
-}
-
-"""
-
 logging.basicConfig(
     level=logging.DEBUG if DEBUG else logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
-
 
 def list_files(folder_path="."):
     current_dir = os.path.abspath(folder_path)
@@ -78,7 +33,7 @@ def list_files(folder_path="."):
     return file_list
 
 
-def upload_to_mistral(filename):
+def upload_to_mistral(filename, platform):
     logger.info(f"Processing file: {filename}")
     if not os.path.isfile(filename):
         logger.error(f"File not found: {filename}")
@@ -96,6 +51,18 @@ def upload_to_mistral(filename):
             "filename": filename,
         }
 
+    prompt_file = f"{platform}-prompt.txt" 
+    if not os.path.isfile(prompt_file):
+        logger.error(f"File not found: {prompt_file}")
+        return {
+            "error": f"File not found: {prompt_file}",
+            "success": False,
+            "filename": filename,
+        }
+
+    with open(prompt_file, "r") as f:
+        prompt = f.read()
+
     url = "https://api.mistral.ai/v1/chat/completions"
 
     headers = {
@@ -110,7 +77,7 @@ def upload_to_mistral(filename):
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": PROMPT},
+                    {"type": "text", "text": prompt},
                     {
                         "type": "image_url",
                         "image_url": {
@@ -179,14 +146,14 @@ def upload_to_mistral(filename):
         }
 
 
-def captions_for_all_files(folder_path="."):
+def captions_for_all_files(folder_path, platform):
     logger.info("Starting caption generation for all files")
     file_list = list_files(folder_path)
     mistral_outputs = {}
 
     for file in file_list:
         logger.info(f"Processing file: {file}")
-        mistral_outputs[file] = upload_to_mistral(os.path.join(folder_path, file))
+        mistral_outputs[file] = upload_to_mistral(os.path.join(folder_path, file), platform)
 
     logger.info("Finished caption generation for all files")
     return mistral_outputs
@@ -202,6 +169,7 @@ def save_captions(captions_dict):
 
 
 if __name__ == "__main__":
-    folder_path = sys.argv[1] if len(sys.argv) > 1 else "."
-    captions = captions_for_all_files(folder_path)
+    platform = sys.argv[1].lower()
+    folder_path = sys.argv[2] if len(sys.argv) > 2 else "."
+    captions = captions_for_all_files(folder_path, platform)
     save_captions(captions)
