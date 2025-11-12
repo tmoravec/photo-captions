@@ -203,20 +203,23 @@ def captions_for_all_files(folder_path, platform):
     return mistral_outputs
 
 
+def write_caption(file, data, file_handle):
+    if data.get("platform") == "reddit":
+        subreddits = data.get("subreddits", [])
+        for subreddit_data in subreddits:
+            subreddit = subreddit_data.get("subreddit", "")
+            caption = subreddit_data.get("caption", "")
+            file_handle.write(f"{file}\n{caption}\n{subreddit}\n---\n")
+    else:
+        caption = data.get("caption", "")
+        tags = " ".join(data.get("tags", []))
+        file_handle.write(f"{file}\n{caption}\n{tags}\n---\n")
+
 def save_captions(captions_dict):
     with open(CAPTIONS_FILE, "w") as f:
         for file, data in captions_dict.items():
             if data.get("success", False):
-                if data.get("platform") == "reddit":
-                    subreddits = data.get("subreddits", [])
-                    for subreddit_data in subreddits:
-                        subreddit = subreddit_data.get("subreddit", "")
-                        caption = subreddit_data.get("caption", "")
-                        f.write(f"{file}\n{caption}\n{subreddit}\n---\n")
-                else:
-                    caption = data.get("caption", "")
-                    tags = " ".join(data.get("tags", []))
-                    f.write(f"{file}\n{caption}\n{tags}\n---\n")
+                write_caption(file, data, f)
 
 
 if __name__ == "__main__":
