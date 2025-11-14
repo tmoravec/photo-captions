@@ -206,14 +206,22 @@ def captions_for_all_files(folder_path, platform):
 def write_caption(file, data, file_handle):
     if data.get("platform") == "reddit":
         subreddits = data.get("subreddits", [])
-        for subreddit_data in subreddits:
-            subreddit = subreddit_data.get("subreddit", "")
-            caption = subreddit_data.get("caption", "")
-            file_handle.write(f"{file}\n{caption}\n{subreddit}\n---\n")
+        if subreddits:
+            # Write the filename header once
+            file_handle.write(f"Šumava/2025 10 26 Zámek Veselí/{file}\n")
+
+            # Write all subreddit/caption pairs
+            for subreddit_data in subreddits:
+                subreddit = subreddit_data.get("subreddit", "")
+                caption = subreddit_data.get("caption", "")
+                file_handle.write(f"{subreddit}\n{caption}\n")
+
+            # Add a single separator at the end
+            file_handle.write("\n---\n\n")
     else:
         caption = data.get("caption", "")
         tags = " ".join(data.get("tags", []))
-        file_handle.write(f"{file}\n{caption}\n{tags}\n---\n")
+        file_handle.write(f"Šumava/2025 10 26 Zámek Veselí/{file}\n{caption}\n{tags}\n\n---\n\n")
 
 def save_captions(captions_dict):
     with open(CAPTIONS_FILE, "w") as f:
