@@ -143,7 +143,7 @@ def upload_to_mistral(filename, platform):
 
     data = {
         "model": "pixtral-large-latest",
-        "temperature": 0.9,
+        "temperature": 0.4 if platform == "instagram" else 0.9,
         "messages": [
             {
                 "role": "user",
