@@ -37,8 +37,9 @@ Pro nahranou fotku vytvoř popisek a tagy podle těchto pravidel:
 - Široké discovery (3-4): #abandoned #mist #solitude #czech ...
 - Niche komunita (2-3): #darkphotography #moodygrams #forgottenplaces ...
 
-# Kontext
-These are photos of castle ruins in southern Bohemia. It was a bit of an urbex, crawling in through broken window, etc.
+# Context
+
+CONTEXT_TO_REPLACE
 
 # Output Format (JSON)
 

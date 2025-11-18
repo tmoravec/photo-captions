@@ -134,6 +134,13 @@ def upload_to_mistral(filename, platform):
     with open(prompt_file, "r") as f:
         prompt = f.read()
 
+    # Read context from context.txt
+    with open("context.txt", "r") as f:
+        context = f.read().strip()
+
+    # Replace magic string with context
+    prompt = prompt.replace("CONTEXT_TO_REPLACE", context)
+
     url = "https://api.mistral.ai/v1/chat/completions"
 
     headers = {
@@ -190,7 +197,7 @@ def upload_to_mistral(filename, platform):
         }
 
 
-def captions_for_all_files(folder_path, platform):
+def captions_for_all_files(platform):
     logger.info("Starting caption generation for all files")
     file_list = list_files(folder_path)
     mistral_outputs = {}
@@ -203,12 +210,23 @@ def captions_for_all_files(folder_path, platform):
     return mistral_outputs
 
 
-def write_caption(file, data, file_handle):
+def write_caption(file, data, file_handle, folder_path):
+    # Remove trailing slash if present
+    folder_path = folder_path.rstrip('/')
+    # Split the path into parts
+    parts = folder_path.split('/')
+    # Check if the path ends with 'vyber'
+    if parts[-1] == 'vyber':
+        # Take the two folders before 'vyber'
+        FOLDER = '/'.join(parts[-3:-1])
+    else:
+        # Take the last two folders
+        FOLDER = '/'.join(parts[-2:])
     if data.get("platform") == "reddit":
         subreddits = data.get("subreddits", [])
         if subreddits:
             # Write the filename header once
-            file_handle.write(f"Šumava/2025 10 26 Zámek Veselí/{file}\n")
+            file_handle.write(f"{FOLDER}/{file}\n")
 
             # Write all subreddit/caption pairs
             for subreddit_data in subreddits:
@@ -221,17 +239,17 @@ def write_caption(file, data, file_handle):
     else:
         caption = data.get("caption", "")
         tags = " ".join(data.get("tags", []))
-        file_handle.write(f"Šumava/2025 10 26 Zámek Veselí/{file}\n{caption}\n{tags}\n\n---\n\n")
+        file_handle.write(f"{FOLDER}/{file}\n{caption}\n{tags}\n\n---\n\n")
 
-def save_captions(captions_dict):
+def save_captions(captions_dict, folder_path):
     with open(CAPTIONS_FILE, "w") as f:
         for file, data in captions_dict.items():
             if data.get("success", False):
-                write_caption(file, data, f)
+                write_caption(file, data, f, folder_path)
 
 
 if __name__ == "__main__":
     platform = sys.argv[1].lower()
     folder_path = sys.argv[2] if len(sys.argv) > 2 else "."
-    captions = captions_for_all_files(folder_path, platform)
-    save_captions(captions)
+    captions = captions_for_all_files(platform)
+    save_captions(captions, folder_path)

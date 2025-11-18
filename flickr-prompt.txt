@@ -28,9 +28,9 @@ Generate 12-15 tags covering:
 - Emotional atmosphere words that convey withering or decay
 - Tags are always single words
 
-# Photo Context
+# Context
 
-These are photos of castle ruins in southern Bohemia. It was a bit of an urbex, crawling in through broken window, etc.
+CONTEXT_TO_REPLACE
 
 # Output Format (JSON)
 
