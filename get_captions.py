@@ -9,7 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 CAPTIONS_FILE = os.getenv("CAPTIONS_FILE", "captions.txt")
-MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+MODEL = os.getenv("MODEL", "mistralai/pixtral-large-2411")
 
 logging.basicConfig(
     level=logging.DEBUG if DEBUG else logging.INFO,
@@ -141,15 +142,15 @@ def upload_to_mistral(filename, platform):
     # Replace magic string with context
     prompt = prompt.replace("CONTEXT_TO_REPLACE", context)
 
-    url = "https://api.mistral.ai/v1/chat/completions"
+    url = "https://openrouter.ai/api/v1/chat/completions"
 
     headers = {
-        "Authorization": f"Bearer {MISTRAL_API_KEY}",
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
     }
 
     data = {
-        "model": "pixtral-large-latest",
+        "model": MODEL,
         "temperature": 0.4 if platform == "instagram" else 0.9,
         "messages": [
             {
@@ -249,6 +250,12 @@ def save_captions(captions_dict, folder_path):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python get_captions.py <platform> [folder_path]")
+        print("Platforms: flickr, instagram, reddit")
+        print("Path: The directory containing images to process. Defaults to current directory if not specified.")
+        print("      Example: photo-captions/images")
+        sys.exit(1)
     platform = sys.argv[1].lower()
     folder_path = sys.argv[2] if len(sys.argv) > 2 else "."
     captions = captions_for_all_files(platform)
