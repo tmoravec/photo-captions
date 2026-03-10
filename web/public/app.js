@@ -91,22 +91,24 @@
     fileList.innerHTML = '';
     selectedFiles.forEach((file, i) => {
       const li = document.createElement('li');
-      li.className = 'list-group-item d-flex align-items-center gap-3 py-2';
+      li.className = 'file-row';
 
       const thumb = document.createElement('img');
       thumb.src = URL.createObjectURL(file);
       thumb.alt = file.name;
-      thumb.className = 'thumb flex-shrink-0';
+      thumb.className = 'thumb';
 
       const nameSpan = document.createElement('span');
-      nameSpan.className = 'flex-grow-1 text-truncate small';
+      nameSpan.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.875rem;';
       nameSpan.textContent = file.name;
 
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
-      removeBtn.className = 'btn btn-sm btn-outline-danger flex-shrink-0';
+      removeBtn.style.cssText = 'background:none;border:none;color:var(--text-muted);font-size:1.1rem;line-height:1;padding:0.2rem 0.4rem;cursor:pointer;border-radius:4px;flex-shrink:0;';
       removeBtn.textContent = '×';
       removeBtn.setAttribute('aria-label', `Remove ${file.name}`);
+      removeBtn.addEventListener('mouseover', () => removeBtn.style.color = '#dc2626');
+      removeBtn.addEventListener('mouseout',  () => removeBtn.style.color = 'var(--text-muted)');
       removeBtn.addEventListener('click', () => removeFile(i));
 
       li.append(thumb, nameSpan, removeBtn);
@@ -179,24 +181,21 @@
   // ── Result card builders ────────────────────────────────────
   function createLoadingCard(file) {
     const card = document.createElement('div');
-    card.className = 'card mb-3';
+    card.className = 'result-card';
     card.innerHTML = `
-      <div class="card-body">
-        <h6 class="card-subtitle text-secondary mb-2 text-truncate">${escapeHtml(file.name)}</h6>
-        <div class="d-flex align-items-center gap-2 text-secondary">
-          <div class="spinner-border spinner-border-sm" role="status" aria-label="Loading"></div>
-          <span>Generating…</span>
-        </div>
+      <div class="result-filename">${escapeHtml(file.name)}</div>
+      <div class="d-flex align-items-center gap-2" style="color:var(--text-muted)">
+        <div class="spinner-border spinner-border-sm" role="status" aria-label="Loading"></div>
+        <span style="font-size:0.9rem">Generating…</span>
       </div>`;
     return card;
   }
 
   function populateCard(card, result) {
-    const body = card.querySelector('.card-body');
-    const filenameHtml = `<h6 class="card-subtitle text-secondary mb-3 text-truncate">${escapeHtml(result.filename)}</h6>`;
+    const filenameHtml = `<div class="result-filename">${escapeHtml(result.filename)}</div>`;
 
     if (!result.success) {
-      body.innerHTML = `
+      card.innerHTML = `
         ${filenameHtml}
         <div class="alert alert-danger mb-0 py-2 small">${escapeHtml(result.error || 'Unknown error')}</div>`;
       return;
@@ -206,9 +205,9 @@
       let rows = '';
       for (const { subreddit, caption } of result.subreddits) {
         rows += `
-          <div class="mb-2">
-            <span class="badge bg-secondary me-2">r/${escapeHtml(subreddit)}</span>
-            <span>${escapeHtml(caption)}</span>
+          <div class="reddit-row">
+            <span class="subreddit-badge">r/${escapeHtml(subreddit)}</span>
+            <span class="reddit-caption">${escapeHtml(caption)}</span>
           </div>`;
       }
 
@@ -216,34 +215,38 @@
         .map(({ subreddit, caption }) => `r/${subreddit}\n${caption}`)
         .join('\n\n');
 
-      body.innerHTML = `
+      card.innerHTML = `
         ${filenameHtml}
         ${rows}
-        <button class="btn btn-sm btn-outline-secondary mt-2 copy-all-btn">Copy all</button>`;
-      body.querySelector('.copy-all-btn').addEventListener('click', () => copyToClipboard(allText));
+        <button class="btn btn-sm btn-outline-secondary copy-all-btn">Copy all</button>`;
+      card.querySelector('.copy-all-btn').addEventListener('click', () => copyToClipboard(allText));
     } else {
       // flickr / instagram
+      const isInstagram = result.platform === 'instagram';
       const tagsHtml = (result.tags || [])
         .map(
           (tag) =>
-            `<span class="badge bg-secondary tag-chip me-1 mb-1" title="Click to copy">${escapeHtml(tag)}</span>`
+            `<span class="tag-chip" title="Click to copy">${isInstagram ? '#' : ''}${escapeHtml(tag)}</span>`
         )
         .join('');
 
-      const allText = `${result.caption}\n${(result.tags || []).join(' ')}`;
+      // Instagram: display caption with the dot-separator lines visible
+      const captionDisplay = isInstagram
+        ? `${escapeHtml(result.caption)}<br>.<br>.<br>.<br>`
+        : escapeHtml(result.caption);
 
-      body.innerHTML = `
+      card.innerHTML = `
         ${filenameHtml}
-        <p class="card-text fs-5 mb-2">${escapeHtml(result.caption)}</p>
-        <div class="mb-3">${tagsHtml}</div>
+        <p class="result-caption">${captionDisplay}</p>
+        <div class="mb-1">${tagsHtml}</div>
         <button class="btn btn-sm btn-outline-secondary copy-all-btn">Copy all</button>`;
 
       // Copy individual tag on click
-      body.querySelectorAll('.tag-chip').forEach((chip, i) => {
-        chip.addEventListener('click', () => copyToClipboard(result.tags[i] || ''));
+      card.querySelectorAll('.tag-chip').forEach((chip, i) => {
+        chip.addEventListener('click', () => copyToClipboard(`#${result.tags[i]}` || ''));
       });
 
-      body.querySelector('.copy-all-btn').addEventListener('click', () => copyToClipboard(allText));
+      card.querySelector('.copy-all-btn').addEventListener('click', () => copyToClipboard(result.exportText || ''));
     }
   }
 

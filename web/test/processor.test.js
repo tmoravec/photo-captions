@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseApiResponse, getTemperature } from '../lib/processor.js';
+import { parseApiResponse, getTemperature, formatInstagramText } from '../lib/processor.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -13,6 +13,20 @@ function makeResponse(content) {
     ],
   };
 }
+
+// ---------------------------------------------------------------------------
+// formatInstagramText
+// ---------------------------------------------------------------------------
+
+test('formatInstagramText — formats caption and tags correctly', () => {
+  const result = formatInstagramText('Okno zarostlé břečťanem', ['abandoned', 'decay', 'urbex']);
+  assert.equal(result, 'Okno zarostlé břečťanem.\n.\n.\n#abandoned #decay #urbex');
+});
+
+test('formatInstagramText — empty tags still adds separator lines', () => {
+  const result = formatInstagramText('Just a caption', []);
+  assert.equal(result, 'Just a caption.\n.\n.\n');
+});
 
 // ---------------------------------------------------------------------------
 // getTemperature
@@ -42,6 +56,7 @@ test('flickr happy path — plain JSON', () => {
   assert.deepEqual(result.tags, ['rust', 'decay', 'rain']);
   assert.equal(result.filename, 'photo.jpg');
   assert.equal(result.platform, 'flickr');
+  assert.equal(result.exportText, 'Rusty gate in the rain\nrust decay rain');
 });
 
 test('instagram happy path — plain JSON', () => {
@@ -50,6 +65,15 @@ test('instagram happy path — plain JSON', () => {
   assert.equal(result.success, true);
   assert.equal(result.caption, 'Okno zarostlé břečťanem');
   assert.deepEqual(result.tags, ['abandoned', 'decay']);
+  assert.equal(result.exportText, 'Okno zarostlé břečťanem.\n.\n.\n#abandoned #decay');
+});
+
+test('tags with leading # are stripped to bare words', () => {
+  const response = makeResponse(JSON.stringify({ caption: 'Dítě pije pivo', tags: ['#cesko', '#retro', '##double'] }));
+  const result = parseApiResponse(response, 'img.jpg', 'instagram');
+  assert.equal(result.success, true);
+  assert.deepEqual(result.tags, ['cesko', 'retro', 'double']);
+  assert.equal(result.exportText, 'Dítě pije pivo.\n.\n.\n#cesko #retro #double');
 });
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,41 +10,266 @@
     integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
     crossorigin="anonymous"
   />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
-    #drop-zone {
-      border: 2px dashed var(--bs-border-color);
-      transition: background-color 0.15s, border-color 0.15s;
-      min-height: 120px;
-      cursor: pointer;
+    :root {
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --surface: #ffffff;
+      --surface-2: #f8f8fb;
+      --border: #e4e4f0;
+      --text-muted: #6b7280;
+      --radius: 12px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
     }
-    #drop-zone.drag-over {
-      background-color: var(--bs-secondary-bg);
-      border-color: var(--bs-primary);
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--surface-2);
+      color: #1a1a2e;
     }
-    .thumb {
-      width: 56px;
-      height: 56px;
-      object-fit: cover;
-      border-radius: 4px;
-    }
-    .tag-chip {
-      cursor: pointer;
-      user-select: none;
-    }
-    .tag-chip:hover {
-      opacity: 0.8;
-    }
+
+    /* ── Auth overlay ── */
     #auth-overlay {
       position: fixed;
       inset: 0;
       z-index: 1050;
-      background: var(--bs-body-bg);
+      background: rgba(248, 248, 251, 0.92);
+      backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    #auth-overlay.d-none {
-      display: none !important;
+    #auth-overlay.d-none { display: none !important; }
+
+    #auth-overlay .card {
+      width: min(90vw, 380px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      text-align: center;
+      padding: 2.5rem 0 2rem;
+    }
+    .page-header h1 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #111827;
+      margin-bottom: 0.25rem;
+    }
+    .page-header p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    /* ── Card panel ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── Form labels ── */
+    .form-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .form-control, .form-select {
+      border-radius: 8px;
+      border-color: var(--border);
+      font-size: 0.925rem;
+      box-shadow: none !important;
+      transition: border-color 0.15s;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent);
+    }
+
+    /* ── Drop zone ── */
+    #drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      min-height: 110px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      background: var(--surface-2);
+    }
+    #drop-zone:hover, #drop-zone.drag-over {
+      background: #eef0fd;
+      border-color: var(--accent);
+    }
+    #drop-zone .drop-icon {
+      font-size: 1.75rem;
+      line-height: 1;
+      margin-bottom: 0.25rem;
+      opacity: 0.5;
+    }
+    #drop-zone p { margin: 0; }
+
+    /* ── File list ── */
+    #file-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    #file-list .file-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+    }
+    .thumb {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    /* ── Submit button ── */
+    #submit-btn {
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      padding: 0.65rem 1.25rem;
+      transition: background 0.15s, opacity 0.15s;
+      letter-spacing: 0.01em;
+    }
+    #submit-btn:hover:not(:disabled) { background: var(--accent-hover); }
+    #submit-btn:disabled { opacity: 0.45; }
+
+    /* ── Result cards ── */
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      animation: fadeUp 0.25s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-filename {
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .result-caption {
+      font-size: 1.15rem;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #111827;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Tag chips ── */
+    .tag-chip {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      background: #eef0fd;
+      color: var(--accent);
+      border: 1px solid #d4d8fb;
+      border-radius: 20px;
+      padding: 0.2rem 0.65rem;
+      margin: 0.2rem 0.2rem 0.2rem 0;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.12s, color 0.12s;
+    }
+    .tag-chip:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* ── Reddit rows ── */
+    .reddit-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.6rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .reddit-row:last-of-type { border-bottom: none; }
+    .subreddit-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #fff3e8;
+      color: #c05621;
+      border: 1px solid #fbd8b8;
+      border-radius: 20px;
+      padding: 0.2rem 0.65rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .reddit-caption {
+      font-size: 0.925rem;
+      color: #374151;
+    }
+
+    /* ── Copy button ── */
+    .copy-all-btn {
+      font-size: 0.8rem;
+      font-weight: 500;
+      border-radius: 7px;
+      border-color: var(--border);
+      color: var(--text-muted);
+      padding: 0.3rem 0.9rem;
+      margin-top: 0.75rem;
+      transition: border-color 0.12s, color 0.12s;
+    }
+    .copy-all-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ── Divider between form sections ── */
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.25rem 0;
     }
   </style>
 </head>
@@ -52,10 +277,10 @@
 
   <!-- Password overlay -->
   <div id="auth-overlay">
-    <div class="card" style="width: min(90vw, 360px);">
+    <div class="card border-0">
       <div class="card-body p-4">
-        <h5 class="card-title mb-3">Photo Captions</h5>
-        <p class="text-secondary small mb-3">Enter the app password to continue.</p>
+        <h5 class="fw-600 mb-1" style="font-weight:600;">Photo Captions</h5>
+        <p class="small mb-3" style="color:var(--text-muted);">Enter the app password to continue.</p>
         <div class="mb-3">
           <input
             type="password"
@@ -66,53 +291,65 @@
           />
         </div>
         <div id="auth-error" class="text-danger small mb-2 d-none">Incorrect password.</div>
-        <button id="auth-submit" class="btn btn-primary w-100">Continue</button>
+        <button id="auth-submit" class="btn btn-primary w-100" style="background:var(--accent);border:none;border-radius:8px;font-weight:500;">Continue</button>
       </div>
     </div>
   </div>
 
   <!-- Main UI -->
-  <main class="container py-4" style="max-width: 720px;">
-    <h1 class="h4 mb-4">Photo Captions</h1>
+  <main class="container" style="max-width: 680px;">
 
-    <!-- Platform selector -->
-    <div class="mb-3">
-      <label for="platform" class="form-label">Platform</label>
-      <select id="platform" class="form-select">
-        <option value="flickr">Flickr</option>
-        <option value="instagram">Instagram</option>
-        <option value="reddit">Reddit</option>
-      </select>
+    <div class="page-header">
+      <h1>Photo Captions</h1>
+      <p>Generate captions and hashtags for your photos using AI</p>
     </div>
 
-    <!-- Context textarea -->
-    <div class="mb-3">
-      <label for="context" class="form-label">Session context</label>
-      <textarea
-        id="context"
-        class="form-control"
-        rows="4"
-        placeholder="Describe the photo session: location, gear, mood, weather…"
-      ></textarea>
+    <div class="panel">
+      <!-- Platform selector -->
+      <div class="mb-4">
+        <label for="platform" class="form-label">Platform</label>
+        <select id="platform" class="form-select">
+          <option value="flickr">Flickr</option>
+          <option value="instagram">Instagram</option>
+          <option value="reddit">Reddit</option>
+        </select>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Context textarea -->
+      <div class="mb-4">
+        <label for="context" class="form-label">Session context</label>
+        <textarea
+          id="context"
+          class="form-control"
+          rows="4"
+          placeholder="Describe the photo session: location, gear, mood, weather…"
+        ></textarea>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Drop zone -->
+      <div id="drop-zone" class="mb-3">
+        <div class="drop-icon">🖼</div>
+        <p class="fw-500" style="font-size:0.9rem;font-weight:500;">Drop images here or
+          <label for="file-input" style="color:var(--accent);cursor:pointer;text-decoration:underline;">browse</label>
+        </p>
+        <p style="font-size:0.8rem;color:var(--text-muted);">JPEG or PNG</p>
+        <input type="file" id="file-input" multiple accept="image/jpeg,image/png,image/jpg" class="d-none" />
+      </div>
+
+      <!-- File list -->
+      <ul id="file-list" class="mb-4"></ul>
+
+      <button id="submit-btn" class="btn btn-primary w-100" disabled>Generate captions</button>
     </div>
 
-    <!-- Drop zone -->
-    <div id="drop-zone" class="rounded p-4 text-center mb-3">
-      <p class="mb-1">Drop images here or
-        <label for="file-input" class="text-primary" style="cursor:pointer; text-decoration:underline;">browse</label>
-      </p>
-      <p class="text-secondary small mb-0">JPEG or PNG</p>
-      <input type="file" id="file-input" multiple accept="image/jpeg,image/png,image/jpg" class="d-none" />
-    </div>
-
-    <!-- File list -->
-    <ul id="file-list" class="list-group mb-3"></ul>
-
-    <button id="submit-btn" class="btn btn-primary w-100" disabled>Generate captions</button>
   </main>
 
   <!-- Results area -->
-  <section id="results" class="container pb-5" style="max-width: 720px;"></section>
+  <section id="results" class="container pb-5" style="max-width: 680px;"></section>
 
   <script
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
