@@ -106,3 +106,4 @@ web/
 5. Drop or browse to select images
 6. Click **Generate captions** — results appear progressively as each image is processed
 7. Click individual hashtags to copy them, or use **Copy all** to copy caption + tags at once
+
