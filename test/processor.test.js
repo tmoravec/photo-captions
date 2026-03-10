@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseApiResponse, getTemperature, formatInstagramText } from '../lib/processor.js';
+import { parseApiResponse, formatInstagramText } from '../lib/processor.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -20,28 +20,12 @@ function makeResponse(content) {
 
 test('formatInstagramText — formats caption and tags correctly', () => {
   const result = formatInstagramText('Okno zarostlé břečťanem', ['abandoned', 'decay', 'urbex']);
-  assert.equal(result, 'Okno zarostlé břečťanem.\n.\n.\n#abandoned #decay #urbex');
+  assert.equal(result, 'Okno zarostlé břečťanem\n.\n.\n.\n#abandoned #decay #urbex');
 });
 
 test('formatInstagramText — empty tags still adds separator lines', () => {
   const result = formatInstagramText('Just a caption', []);
-  assert.equal(result, 'Just a caption.\n.\n.\n');
-});
-
-// ---------------------------------------------------------------------------
-// getTemperature
-// ---------------------------------------------------------------------------
-
-test('getTemperature returns 0.4 for instagram', () => {
-  assert.equal(getTemperature('instagram'), 0.4);
-});
-
-test('getTemperature returns 0.9 for flickr', () => {
-  assert.equal(getTemperature('flickr'), 0.9);
-});
-
-test('getTemperature returns 0.9 for reddit', () => {
-  assert.equal(getTemperature('reddit'), 0.9);
+  assert.equal(result, 'Just a caption\n.\n.\n.\n');
 });
 
 // ---------------------------------------------------------------------------
@@ -65,7 +49,7 @@ test('instagram happy path — plain JSON', () => {
   assert.equal(result.success, true);
   assert.equal(result.caption, 'Okno zarostlé břečťanem');
   assert.deepEqual(result.tags, ['abandoned', 'decay']);
-  assert.equal(result.exportText, 'Okno zarostlé břečťanem.\n.\n.\n#abandoned #decay');
+  assert.equal(result.exportText, 'Okno zarostlé břečťanem\n.\n.\n.\n#abandoned #decay');
 });
 
 test('tags with leading # are stripped to bare words', () => {
@@ -73,7 +57,7 @@ test('tags with leading # are stripped to bare words', () => {
   const result = parseApiResponse(response, 'img.jpg', 'instagram');
   assert.equal(result.success, true);
   assert.deepEqual(result.tags, ['cesko', 'retro', 'double']);
-  assert.equal(result.exportText, 'Dítě pije pivo.\n.\n.\n#cesko #retro #double');
+  assert.equal(result.exportText, 'Dítě pije pivo\n.\n.\n.\n#cesko #retro #double');
 });
 
 // ---------------------------------------------------------------------------

@@ -21,7 +21,7 @@ This installs the single devDependency: `vercel` CLI.
 
 ### 2. Configure environment
 
-Edit `web/.env.local` (created automatically, not committed):
+Edit `.env.local` (created automatically, not committed):
 
 ```
 OPENROUTER_API_KEY=sk-or-...

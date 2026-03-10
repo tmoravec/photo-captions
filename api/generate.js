@@ -1,5 +1,5 @@
 import { getPrompt, PLATFORMS } from '../lib/prompts.js';
-import { getTemperature, parseApiResponse } from '../lib/processor.js';
+import { parseApiResponse } from '../lib/processor.js';
 
 const MAX_RETRIES = 3;
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const temperature = getTemperature(platform);
+  const temperature = 0.9;
 
   const requestPayload = {
     model,
