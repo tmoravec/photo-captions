@@ -1,6 +1,10 @@
 # photo-captions web
 
-A zero-dependency vanilla JS web app that generates social-media captions and hashtags for batches of photos using the Mistral Pixtral vision model via OpenRouter.
+> **Personal project** — this is my own utility, built for my own use.
+
+A zero-dependency vanilla JS web app that generates social-media captions and hashtags for batches of photos using Gemini 3 Flash via OpenRouter.
+
+![photo-captions screenshot](photo-captions-screenshot.png)
 
 ## Stack
 
@@ -11,33 +15,23 @@ A zero-dependency vanilla JS web app that generates social-media captions and ha
 
 ## Local Development
 
-### 1. Install dependencies
+### 1. Configure environment
 
-```bash
-npm install
-```
-
-This installs the single devDependency: `vercel` CLI.
-
-### 2. Configure environment
-
-Edit `.env.local` (created automatically, not committed):
+Edit `.env.local`:
 
 ```
 OPENROUTER_API_KEY=sk-or-...
-MODEL=mistralai/pixtral-large-2411
-DEBUG=false
+MODEL=google/gemini-3-flash-preview
+DEBUG=true
 APP_PASSWORD=your-chosen-password
 ```
 
-### 3. Start dev server
+### 2. Start dev server
 
 ```bash
-npm run dev
+npm start
 # → http://localhost:3000
 ```
-
-`vercel dev` replicates the Vercel production environment locally: serves `public/` as static files and `api/` as serverless functions.
 
 ## Tests
 
@@ -54,15 +48,29 @@ Runs all unit tests using Node's built-in `node:test`. No API key required — t
 
 ## Vercel Deployment
 
+The app is automatically deployed on Vercel on every push to `main`.
+
+To set it up from scratch:
+
 1. Push the repo to GitHub
 2. In the [Vercel dashboard](https://vercel.com/), click **Add New → Project**
-3. Import the GitHub repo, set the **Root Directory** to `web/`
+3. Import the GitHub repo, leave the **Root Directory** as the repo root
 4. Add these environment variables in Vercel:
    - `OPENROUTER_API_KEY`
-   - `MODEL` (optional, defaults to `mistralai/pixtral-large-2411`)
+   - `MODEL` (optional, defaults to `google/gemini-3-flash-preview`)
    - `APP_PASSWORD`
    - `DEBUG` (optional, set to `true` for verbose logging)
-5. Click **Deploy** — Vercel auto-deploys on every push to `main`
+5. Click **Deploy** — Vercel will auto-deploy on every push to `main` from then on
+
+## Philosophy
+
+Keep it simple. This project aims to stay lean by avoiding unnecessary dependencies — no frameworks, no bundlers, no transpilers. Zero runtime dependencies.
+
+- **Frontend:** plain HTML + vanilla JS + Bootstrap via CDN. No build step required.
+- **Backend:** a single serverless function in plain Node.js. No framework overhead.
+- **Tests:** Node's built-in `node:test`. No additional test framework to install or configure.
+
+If a feature can be built without adding a dependency, it is.
 
 ## Architecture
 
@@ -74,24 +82,24 @@ Browser (vanilla JS)
 api/generate.js (Vercel serverless function)
   │  Auth check → validate inputs → build prompt → call OpenRouter → parse+retry
   ▼
-OpenRouter API (mistralai/pixtral-large-2411)
+OpenRouter API (google/gemini-3-flash-preview)
 ```
 
 ## Project Structure
 
 ```
-web/
 ├── api/
 │   └── generate.js         # Serverless function: auth, OpenRouter call, retry
 ├── lib/
 │   ├── prompts.js           # Prompt templates + getPrompt()
-│   └── processor.js         # parseApiResponse(), getTemperature()
+│   └── processor.js         # parseApiResponse(), formatInstagramText()
 ├── public/
 │   ├── index.html           # Single-page UI with Bootstrap 5 CDN
 │   └── app.js               # Vanilla JS: drag & drop, fetch loop, results rendering
 ├── test/
 │   ├── processor.test.js    # Unit tests for response parsing
 │   └── prompts.test.js      # Unit tests for prompt generation
+├── server.js                # Local dev server (zero-dependency, loads .env.local)
 ├── package.json
 ├── vercel.json
 └── README.md

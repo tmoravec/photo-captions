@@ -50,7 +50,7 @@ export default async function handler(req, res) {
   }
 
   const resolvedMimeType = mimeType || 'image/jpeg';
-  const model = process.env.MODEL || 'mistralai/pixtral-large-2411';
+  const model = process.env.MODEL || 'google/gemini-3-flash-preview';
 
   // ── Build the prompt ───────────────────────────────────────────────────────
   let promptText;
