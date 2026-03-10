@@ -5,6 +5,16 @@ const MAX_RETRIES = 3;
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 export default async function handler(req, res) {
+  const debug = process.env.DEBUG === 'true' || process.env.DEBUG === '1';
+
+  // ── Startup env check (always logged so you can see it in the terminal) ───
+  console.log('[generate] env check', {
+    hasPassword: !!process.env.APP_PASSWORD,
+    hasApiKey:   !!process.env.OPENROUTER_API_KEY,
+    debug:       process.env.DEBUG,
+    model:       process.env.MODEL,
+  });
+
   // ── Auth ──────────────────────────────────────────────────────────────────
   const appPassword = process.env.APP_PASSWORD;
   const providedToken = req.headers['x-auth-token'];
@@ -41,7 +51,6 @@ export default async function handler(req, res) {
 
   const resolvedMimeType = mimeType || 'image/jpeg';
   const model = process.env.MODEL || 'mistralai/pixtral-large-2411';
-  const debug = process.env.DEBUG === 'true' || process.env.DEBUG === '1';
 
   // ── Build the prompt ───────────────────────────────────────────────────────
   let promptText;

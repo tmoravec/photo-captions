@@ -226,11 +226,11 @@
       const tagsHtml = (result.tags || [])
         .map(
           (tag) =>
-            `<span class="badge bg-secondary tag-chip me-1 mb-1" title="Click to copy">#${escapeHtml(tag)}</span>`
+            `<span class="badge bg-secondary tag-chip me-1 mb-1" title="Click to copy">${escapeHtml(tag)}</span>`
         )
         .join('');
 
-      const allText = `${result.caption}\n${(result.tags || []).map((t) => '#' + t).join(' ')}`;
+      const allText = `${result.caption}\n${(result.tags || []).join(' ')}`;
 
       body.innerHTML = `
         ${filenameHtml}
@@ -240,7 +240,7 @@
 
       // Copy individual tag on click
       body.querySelectorAll('.tag-chip').forEach((chip, i) => {
-        chip.addEventListener('click', () => copyToClipboard('#' + (result.tags[i] || '')));
+        chip.addEventListener('click', () => copyToClipboard(result.tags[i] || ''));
       });
 
       body.querySelector('.copy-all-btn').addEventListener('click', () => copyToClipboard(allText));
