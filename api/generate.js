@@ -32,7 +32,7 @@ export default async function handler(req, res) {
 
   // ── Parse body ────────────────────────────────────────────────────────────
   // Vercel parses application/json automatically.
-  const { platform, context = '', filename, imageBase64, mimeType } = req.body ?? {};
+  const { platform, context = '', filename, imageBase64, mimeType, imageWidth, imageHeight } = req.body ?? {};
 
   if (!PLATFORMS.includes(platform)) {
     res.status(400).json({ error: `Invalid platform. Must be one of: ${PLATFORMS.join(', ')}` });
@@ -55,7 +55,8 @@ export default async function handler(req, res) {
   // ── Build the prompt ───────────────────────────────────────────────────────
   let promptText;
   try {
-    promptText = getPrompt(platform, context);
+    const dimensions = (imageWidth && imageHeight) ? { width: imageWidth, height: imageHeight } : undefined;
+    promptText = getPrompt(platform, context, dimensions);
   } catch (err) {
     res.status(400).json({ error: err.message });
     return;

@@ -146,6 +146,22 @@
   });
 
   // ── Utilities ───────────────────────────────────────────────
+  function getImageDimensions(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load image for dimension extraction'));
+      };
+      img.src = url;
+    });
+  }
+
   function readFileAsBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -292,7 +308,10 @@
       const card  = cards[i];
 
       try {
-        const imageBase64 = await readFileAsBase64(file);
+        const [imageBase64, dimensions] = await Promise.all([
+          readFileAsBase64(file),
+          getImageDimensions(file),
+        ]);
 
         const response = await fetch('/api/generate', {
           method: 'POST',
@@ -306,6 +325,8 @@
             filename: file.name,
             imageBase64,
             mimeType: file.type || 'image/jpeg',
+            imageWidth: dimensions.width,
+            imageHeight: dimensions.height,
           }),
         });
 
