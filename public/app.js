@@ -222,13 +222,13 @@
       for (const { subreddit, caption } of result.subreddits) {
         rows += `
           <div class="reddit-row">
-            <span class="subreddit-badge">r/${escapeHtml(subreddit)}</span>
+            <span class="subreddit-badge">${escapeHtml(subreddit)}</span>
             <span class="reddit-caption">${escapeHtml(caption)}</span>
           </div>`;
       }
 
       const allText = result.subreddits
-        .map(({ subreddit, caption }) => `r/${subreddit}\n${caption}`)
+        .map(({ subreddit, caption }) => `${subreddit}\n${caption}`)
         .join('\n\n');
 
       card.innerHTML = `
